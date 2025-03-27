@@ -1,12 +1,20 @@
-import { AnimatePresence, motion } from 'motion/react'
+import { AnimatePresence, motion, useMotionTemplate, useMotionValueEvent, useScroll, useSpring, useTransform } from 'motion/react'
 import { cn } from './lib/utils'
 import { GeistSans } from 'geist/font/sans'
-import { IoMdClose } from "react-icons/io"
+import { IoMdClose, IoIosRocket } from "react-icons/io"
 import { MdOutlineMessage } from "react-icons/md"
-import { useState } from 'react'
+import { ReactNode, useRef, useState } from 'react'
 
 const App = () => {
   const [open, setOpen] = useState(true)
+  const bgs = ['#343434', '#00193b', '#05291c', '#171717']
+  const ref = useRef<HTMLDivElement>(null)
+  const [bg, setBg] = useState(bgs[0])
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ['start end', 'end start']
+  })
+  useMotionValueEvent(scrollYProgress, 'change', latest => setBg(bgs[Math.floor(latest * bgs.length)]))
   return (
     <>
       {/* 1 */}
@@ -47,7 +55,7 @@ const App = () => {
         </motion.button>
       </div> */}
       {/* 2 */}
-      <div className={cn('h-screen flex items-center justify-center bg-gray-50',)}>
+      {/* <div className={cn('h-screen flex items-center justify-center bg-gray-50',)}>
         <AnimatePresence>
           {open &&
             <motion.div
@@ -133,9 +141,123 @@ const App = () => {
               </div>
             </motion.div>}
         </AnimatePresence>
-      </div>
+      </div> */}
+      {/* 3 */}
+
+      {/* 4 */}
+      <motion.div
+        className="flex min-h-screen items-center justify-center bg-neutral-900"
+        ref={ref}
+        style={{ background: bg }}
+        animate={{ background: bg }}
+        transition={{
+          duration: 1,
+          ease: 'easeInOut'
+        }}
+      >
+        <div className="flex flex-col gap-10 mx-auto max-w-4xl py-40">
+          {features.map((f, i) => <Card feature={f} key={i} />)}
+        </div>
+      </motion.div>
     </>
   )
+}
+
+const Card = ({ feature }: { feature: Feature }) => {
+  const ref = useRef<HTMLDivElement>(null)
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ['start end', 'end start']
+  })
+  useMotionValueEvent(scrollYProgress, 'change', latest => console.log('Changed values', latest))
+  // const translateContent = useTransform(scrollYProgress, [0, 1], [200, -300])
+  const translateContent = useSpring(
+    useTransform(scrollYProgress, [0, 1], [200, -300]),
+    {
+      stiffness: 100,
+      damping: 30,
+      mass: 1
+    }
+  )
+  const opacity = useTransform(scrollYProgress, [0, .5, 1], [0, 1, 0])
+  const blur = useTransform(scrollYProgress, [0.5, 1], [0, 10])
+  const scale = useTransform(scrollYProgress, [0.5, 1], [1, .8])
+  return (
+    <div className="grid grid-cols-2 gap-20 items-center py-40" ref={ref}>
+      <motion.div
+        className="flex flex-col gap-5"
+        style={{
+          filter: useMotionTemplate`blur(${blur}px)`,
+          scale
+        }}>
+        {feature.icon}
+        <h2 className='text-4xl font-bold text-white'>
+          {feature.title}
+        </h2>
+        <p className='text-neutral-400 text-lg'>
+          {feature.description}
+        </p>
+      </motion.div>
+      <motion.div
+        className=""
+        style={{
+          y: translateContent,
+          opacity
+        }}>
+        {feature.content}
+      </motion.div>
+    </div>
+  )
+}
+
+const features: Feature[] = [
+  {
+    icon: <IoIosRocket className='h-8 w-8 text-neutral-200' />,
+    title: 'Speedy Delivery',
+    description: 'Get your products delivered faster than ever.',
+    content: (
+      <div>
+        <img src="https://assets.aceternity.com/pro/car-1.jpg" alt="car" className='rounded-lg' />
+      </div>
+    ),
+  },
+  {
+    icon: <IoIosRocket className='h-8 w-8 text-neutral-200' />,
+    title: 'Eco-friendly',
+    description: 'Our products are built with sustainability in mind.',
+    content: (
+      <div>
+        <img src="https://assets.aceternity.com/pro/car-2.jpg" alt="car" className='rounded-lg' />
+      </div>
+    ),
+  },
+  {
+    icon: <IoIosRocket className='h-8 w-8 text-neutral-200' />,
+    title: 'Reliable Performance',
+    description: 'Count on us for consistent quality and performance.',
+    content: (
+      <div>
+        <img src="https://assets.aceternity.com/pro/car-3.jpg" alt="car" className='rounded-lg' />
+      </div>
+    ),
+  },
+  {
+    icon: <IoIosRocket className='h-8 w-8 text-neutral-200' />,
+    title: 'Innovative Design',
+    description: 'Designed with cutting-edge technology and style.',
+    content: (
+      <div>
+        <img src="https://assets.aceternity.com/pro/car-4.jpg" alt="car" className='rounded-lg' />
+      </div>
+    ),
+  },
+]
+
+type Feature = {
+  icon: ReactNode
+  title: string
+  description: string
+  content: ReactNode
 }
 
 export default App
