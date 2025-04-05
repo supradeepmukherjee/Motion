@@ -3,18 +3,51 @@ import { cn } from './lib/utils'
 import { GeistSans } from 'geist/font/sans'
 import { IoMdClose, IoIosRocket } from "react-icons/io"
 import { MdOutlineMessage } from "react-icons/md"
-import { ReactNode, useRef, useState } from 'react'
+import { ReactNode, RefObject, useEffect, useRef, useState } from 'react'
+
+type UseOutsideClickProps = {
+  ref: RefObject<HTMLElement | null>;
+  handler: (event: MouseEvent | TouchEvent) => void;
+  enabled?: boolean;
+};
+
+function useOutsideClick({ ref, handler, enabled = true }: UseOutsideClickProps) {
+  useEffect(() => {
+    if (!enabled) return;
+
+    const listener = (event: MouseEvent | TouchEvent) => {
+      if (!ref.current || ref.current.contains(event.target as Node)) return;
+      handler(event);
+    };
+
+    document.addEventListener('mousedown', listener);
+    document.addEventListener('touchstart', listener);
+
+    return () => {
+      document.removeEventListener('mousedown', listener);
+      document.removeEventListener('touchstart', listener);
+    };
+  }, [ref, handler, enabled]);
+}
 
 const App = () => {
   const [open, setOpen] = useState(true)
   const bgs = ['#343434', '#00193b', '#05291c', '#171717']
-  const ref = useRef<HTMLDivElement>(null)
+  const [current, setCurrent] = useState<Card | null>(null)
+  const ref = useRef<HTMLDivElement | null>(null);
+
+  useOutsideClick({
+    ref,
+    handler: () => setCurrent(null),
+    enabled: !!current, // ✅ activates only when current is set
+  });
   const [bg, setBg] = useState(bgs[0])
+  console.log(current)
   const { scrollYProgress } = useScroll({
-    target: ref,
+    // target: ref,
     offset: ['start end', 'end start']
   })
-  useMotionValueEvent(scrollYProgress, 'change', latest => setBg(bgs[Math.floor(latest * bgs.length)]))
+  // useMotionValueEvent(scrollYProgress, 'change', latest => setBg(bgs[Math.floor(latest * bgs.length)]))
   return (
     <>
       {/* 1 */}
@@ -145,7 +178,7 @@ const App = () => {
       {/* 3 */}
 
       {/* 4 */}
-      <motion.div
+      {/* <motion.div
         className="flex min-h-screen items-center justify-center bg-neutral-900"
         ref={ref}
         style={{ background: bg }}
@@ -158,10 +191,155 @@ const App = () => {
         <div className="flex flex-col gap-10 mx-auto max-w-4xl py-40">
           {features.map((f, i) => <Card feature={f} key={i} />)}
         </div>
-      </motion.div>
+      </motion.div> */}
+
+      {/* 5 */}
+      <div className="py-10 bg-gray-100 min-h-screen relative">
+        {current && (
+          <>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="fixed z-10 w-full h-full inset-0 bg-black/50 backdrop-blur-sm" />
+            <motion.div
+              layoutId={`card-${current.title}`}
+              ref={ref}
+              className='h-[500px] w-72 rounded-2xl border border-neutral-200 p-4 fixed inset-0 z-20 m-auto bg-white overflow-hidden'>
+              <motion.img layoutId={`img-${current.title}`} src={current.src} alt={current.title} className='w-full aspect-square rounded-xl' />
+              <div className="flex justify-between items-start flex-col">
+                <div className="flex justify-between w-full items-start gap-2 py-4">
+                  <div className="flex flex-col items-start gap-2">
+                    <motion.h2 layoutId={`title-${current.title}`} className="font-bold text-xs tracking-tight text-black">
+                      {current.title}
+                    </motion.h2>
+                    <motion.p layoutId={`desc-${current.title}`} className="text-xs text-neutral-500">
+                      {current.description}
+                    </motion.p>
+                  </div>
+                  <motion.div className="" layoutId={`cta-${current.title}`}>
+                    <a href={current.ctaLink} className="px-2 py-1 bg-green-500 rounded-full text-white text-xs">
+                      {current.ctaText}
+                    </a>
+                  </motion.div>
+                </div>
+                <motion.div
+                  initial={{
+                    filter: 'blur(10px)',
+                    opacity: 0
+                  }}
+                  animate={{
+                    filter: 'blur(0px)',
+                    opacity: 1
+                  }}
+                  transition={{ delay: .3 }}
+                  className="h-50 overflow-auto pb-20 [mask-image:linear-gradient(to_top,transparent_20%,black_50%)]"
+                >
+                  {current.content()}
+                </motion.div>
+              </div>
+            </motion.div>
+          </>
+        )}
+        <div className="max-w-lg flex flex-col mx-auto gap-10">
+          {cards.map((c, i) => (
+            <motion.button
+              layoutId={`card-${c.title}`}
+              onClick={() => setCurrent(c)}
+              key={i}
+              className="p-4 rounded-lg flex justify-between items-center bg-white border border-neutral-200 cursor-pointer">
+              <div className="flex gap-4 items-center">
+                <motion.img layoutId={`img-${c.title}`} src={c.src} alt={c.title} className='h-20 aspect-square rounded-xl' />
+                <div className="flex flex-col items-start gap-2">
+                  <motion.h2 layoutId={`title-${c.title}`} className="font-bold text-xs tracking-tight text-black">
+                    {c.title}
+                  </motion.h2>
+                  <motion.p layoutId={`desc-${c.title}`} className="text-xs text-neutral-500">
+                    {c.description}
+                  </motion.p>
+                </div>
+              </div>
+              <motion.div layoutId={`cta-${c.title}`} className="px-2 py-1 bg-green-500 rounded-full text-white text-xs">
+                {c.ctaText}
+              </motion.div>
+            </motion.button>
+          ))}
+        </div>
+      </div>
     </>
   )
 }
+
+const cards: Card[] = [
+  {
+    description: 'Lana Del Rey',
+    title: 'Summertime Sadness',
+    src: 'https://assets.aceternity.com/demos/lana-del-rey.jpeg',
+    ctaText: 'Play',
+    ctaLink: 'https://ui.aceternity.com/templates',
+    content: () => (
+      <p className="text-[10px] text-neutral-500">
+        “Summertime Sadness” is an atmospheric ballad blending haunting vocals with cinematic
+        instrumentals. It captures the bittersweet feeling of fleeting romance and the melancholic
+        beauty of summer's end. Lana’s nostalgic lyricism turns heartbreak into poetry, wrapped in
+        dreamy melancholy.
+      </p>
+    )
+  },
+  {
+    description: 'The Weeknd',
+    title: 'Blinding Lights',
+    src: 'https://assets.aceternity.com/demos/the-weeknd.jpeg',
+    ctaText: 'Play',
+    ctaLink: 'https://ui.aceternity.com/templates',
+    content: () => (
+      <p className="text-[10px] text-neutral-500">
+        A synthwave masterpiece that instantly throws you into a retro night drive through neon-lit
+        streets. With pulsating beats and urgent vocals, “Blinding Lights” is both a modern pop
+        triumph and a heartfelt cry for connection, showcasing The Weeknd’s artistic versatility.
+      </p>
+    )
+  },
+  {
+    description: 'Billie Eilish',
+    title: 'Ocean Eyes',
+    src: 'https://assets.aceternity.com/demos/billie-eilish.jpeg',
+    ctaText: 'Play',
+    ctaLink: 'https://ui.aceternity.com/templates',
+    content: () => (
+      <p className="text-[10px] text-neutral-500">
+        Delicate and ethereal, “Ocean Eyes” introduced the world to Billie Eilish’s haunting voice
+        and emotional depth. With mesmerizing melodies and poetic vulnerability, it paints a vivid
+        portrait of young love, heartbreak, and longing — soft, slow, and soul-stirring.
+      </p>
+    )
+  },
+  {
+    description: 'Frank Ocean',
+    title: 'Pink + White',
+    src: 'https://assets.aceternity.com/demos/frank-ocean.jpeg',
+    ctaText: 'Play',
+    ctaLink: 'https://ui.aceternity.com/templates',
+    content: () => (
+      <p className="text-[10px] text-neutral-500">
+        “Pink + White” is a lush, spiritual meditation on love, loss, and impermanence. With
+        production by Pharrell and background vocals by Beyoncé, Frank Ocean delivers a delicate,
+        flowing performance that feels like watching clouds drift through a soft, golden sky.
+      </p>
+    )
+  },
+  {
+    description: 'Taylor Swift',
+    title: 'All Too Well (10 Minute Version)',
+    src: 'https://assets.aceternity.com/demos/taylor-swift.jpeg',
+    ctaText: 'Play',
+    ctaLink: 'https://ui.aceternity.com/templates',
+    content: () => (
+      <p className="text-[10px] text-neutral-500">
+        A lyrical epic drenched in raw emotion, “All Too Well (10 Minute Version)” tells the
+        intricate story of a relationship's rise and fall. With vivid storytelling, powerful
+        imagery, and a soaring finale, Taylor captures the ache of memory and the scars of
+        love lost — in a way only she can.
+      </p>
+    )
+  }
+]
 
 const Card = ({ feature }: { feature: Feature }) => {
   const ref = useRef<HTMLDivElement>(null)
@@ -258,6 +436,15 @@ type Feature = {
   title: string
   description: string
   content: ReactNode
+}
+
+type Card = {
+  description: string
+  title: string
+  src: string
+  ctaText: string
+  ctaLink: string
+  content: () => ReactNode
 }
 
 export default App
