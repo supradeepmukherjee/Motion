@@ -30,6 +30,25 @@ function useOutsideClick({ ref, handler, enabled = true }: UseOutsideClickProps)
   }, [ref, handler, enabled]);
 }
 
+const navItems = [
+  {
+    title: 'Home',
+    href: '/'
+  },
+  {
+    title: 'About',
+    href: '/about'
+  },
+  {
+    title: 'Contact',
+    href: '/contact'
+  },
+  {
+    title: 'Login',
+    href: '/login'
+  },
+]
+
 const App = () => {
   const [open, setOpen] = useState(true)
   const bgs = ['#343434', '#00193b', '#05291c', '#171717']
@@ -42,7 +61,7 @@ const App = () => {
     enabled: !!current, // ✅ activates only when current is set
   });
   const [bg, setBg] = useState(bgs[0])
-  console.log(current)
+  const [hovered, setHovered] = useState<null | number>(null)
   const { scrollYProgress } = useScroll({
     // target: ref,
     offset: ['start end', 'end start']
@@ -193,8 +212,8 @@ const App = () => {
         </div>
       </motion.div> */}
 
-      {/* 5 */}
-      <div className="py-10 bg-gray-100 min-h-screen relative">
+      {/* 5.1 */}
+      {/* <div className="py-10 bg-gray-100 min-h-screen relative">
         {current && (
           <>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="fixed z-10 w-full h-full inset-0 bg-black/50 backdrop-blur-sm" />
@@ -261,6 +280,27 @@ const App = () => {
             </motion.button>
           ))}
         </div>
+      </div> */}
+
+      {/* 5.2 */}
+      <div className="py-40">
+        <nav className="max-w-xl mx-auto bg-gray-100 rounded-full px-2 py-1 flex">
+          {navItems.map((i, n) => (
+            <a
+              onMouseEnter={() => setHovered(n)}
+              onMouseLeave={() => setHovered(null)}
+              href={i.href}
+              key={i.href}
+              className='w-full relative text-center text-xs py-3 hover:text-white'>
+              {hovered === n && <motion.div layoutId='hover' className='absolute inset-0 rounded-full w-full h-full bg-black' />}
+              <motion.span
+                animate={{ color: hovered === n ? 'white' : 'black' }}
+                className="relative z-20">
+                {i.title}
+              </motion.span>
+            </a>
+          ))}
+        </nav>
       </div>
     </>
   )
