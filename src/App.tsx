@@ -1,4 +1,4 @@
-import { AnimatePresence, motion, stagger, useAnimate, useMotionTemplate, useMotionValueEvent, useScroll, useSpring, useTransform } from 'motion/react'
+import { AnimatePresence, AnimationSequence, motion, stagger, useAnimate, useMotionTemplate, useMotionValueEvent, useScroll, useSpring, useTransform } from 'motion/react'
 import { cn } from './lib/utils'
 import { GeistSans } from 'geist/font/sans'
 import { IoMdClose, IoIosRocket } from "react-icons/io"
@@ -84,6 +84,76 @@ const App = () => {
       }
     )
   }, [])
+  const sequence: AnimationSequence = [
+    [
+      'button',
+      {
+        width: '5rem',
+        borderRadius: '9999px'
+      },
+      { duration: .3 }
+    ],
+    [
+      '.text',
+      { display: 'none' },
+      { duration: .2 }
+    ],
+    [
+      'button',
+      {
+        opacity: 1,
+        scale: [0, 1.2, .8, 1],
+        backgroundColor: 'green'
+
+      },
+      { duration: .5 }
+    ],
+    [
+      '.check-icon',
+      { opacity: 1 },
+      { duration: .1 }
+    ],
+    [
+      '.check-icon path',
+      { pathLength: 1 },
+      { duration: .3, at: '-0.1' }
+    ]
+  ]
+  const startAnimating = async () => {
+    animate(sequence)
+    // animate(
+    //   'button',
+    //   {
+    //     width: '5rem',
+    //     borderRadius: '9999px'
+    //   },
+    //   { duration: .3 }
+    // )
+    // await animate(
+    //   '.text',
+    //   { display: 'none' },
+    //   { duration: .2 }
+    // )
+    // animate(
+    //   'button',
+    //   {
+    //     opacity: 1,
+    //     scale: [0, 1.2, .8, 1],
+    //     backgroundColor: 'green'
+    //   },
+    //   { duration: .5 }
+    // )
+    // animate(
+    //   '.check-icon',
+    //   { opacity: 1 },
+    //   { duration: .1 }
+    // )
+    // animate(
+    //   '.check-icon path',
+    //   { pathLength: 1 },
+    //   { duration: .3 }
+    // )
+  }
   return (
     <>
       {/* 1 */}
@@ -321,12 +391,12 @@ const App = () => {
       </div> */}
 
       {/* 6.1 */}
-      <div className="flex justify-center items-center min-h-screen bg-black">
-        <div className="text-white font-bold max-w-4xl mx-auto text-4xl" ref={scope}>
-          {/* <motion.span style={{ opacity: 0 }} className='inline-block'>
+      {/* <div className="flex justify-center items-center min-h-screen bg-black">
+        <div className="text-white font-bold max-w-4xl mx-auto text-4xl" ref={scope}> */}
+      {/* <motion.span style={{ opacity: 0 }} className='inline-block'>
             {text}
           </motion.span> */}
-          {text.split(' ').map((w, i) => (
+      {/* {text.split(' ').map((w, i) => (
             <motion.span
               key={i}
               className='inline-block'
@@ -339,6 +409,44 @@ const App = () => {
               {w} &nbsp;
             </motion.span>
           ))}
+        </div>
+      </div> */}
+
+      {/* 6.2 */}
+      <div className="flex justify-center items-center min-h-screen bg-black">
+        <div className="relative w-60 h-20 flex items-center justify-center" ref={scope}>
+          <motion.button
+            onClick={startAnimating}
+            style={{ width: '30rem' }}
+            className='h-20 rounded-lg bg-purple-400 text-white font-medium'>
+            <span className='text'>
+              Buy Now (Rs. 69)
+            </span>
+          </motion.button>
+          <motion.svg
+            fill='none'
+            viewBox='0 0 24 24'
+            stroke='#FFFFFF'
+            strokeWidth={3}
+            className='check-icon h-8 w-8 absolute inset-0 m-auto z-50 pointer-events-none'
+            style={{
+              opacity: 0
+            }}
+          >
+            <motion.path
+              initial={{
+                pathLength: 0
+              }}
+              transition={{
+                duration: .3,
+                type: 'tween',
+                ease: 'easeOut'
+              }}
+              strokeLinecap='round'
+              strokeLinejoin='round'
+              d='M5 13l4 4L19 7'
+            />
+          </motion.svg>
         </div>
       </div>
     </>
