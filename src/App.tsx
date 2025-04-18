@@ -1,4 +1,4 @@
-import { AnimatePresence, motion, useMotionTemplate, useMotionValueEvent, useScroll, useSpring, useTransform } from 'motion/react'
+import { AnimatePresence, motion, stagger, useAnimate, useMotionTemplate, useMotionValueEvent, useScroll, useSpring, useTransform } from 'motion/react'
 import { cn } from './lib/utils'
 import { GeistSans } from 'geist/font/sans'
 import { IoMdClose, IoIosRocket } from "react-icons/io"
@@ -67,6 +67,23 @@ const App = () => {
     offset: ['start end', 'end start']
   })
   // useMotionValueEvent(scrollYProgress, 'change', latest => setBg(bgs[Math.floor(latest * bgs.length)]))
+  const text = 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt illum sapiente, veritatis nisi, voluptas quisquam voluptatum ducimus est magni assumenda vero asperiores necessitatibus magnam nobis vel culpa quidem adipisci accusantium.'
+  const [scope, animate] = useAnimate()
+  useEffect(() => {
+    animate(
+      'span',
+      {
+        opacity: 1,
+        filter: 'blur(0px)',
+        y: 0
+      },
+      {
+        duration: 1,
+        ease: 'easeInOut',
+        delay: stagger(.05)
+      }
+    )
+  }, [])
   return (
     <>
       {/* 1 */}
@@ -283,7 +300,7 @@ const App = () => {
       </div> */}
 
       {/* 5.2 */}
-      <div className="py-40">
+      {/* <div className="py-40">
         <nav className="max-w-xl mx-auto bg-gray-100 rounded-full px-2 py-1 flex">
           {navItems.map((i, n) => (
             <a
@@ -301,6 +318,28 @@ const App = () => {
             </a>
           ))}
         </nav>
+      </div> */}
+
+      {/* 6.1 */}
+      <div className="flex justify-center items-center min-h-screen bg-black">
+        <div className="text-white font-bold max-w-4xl mx-auto text-4xl" ref={scope}>
+          {/* <motion.span style={{ opacity: 0 }} className='inline-block'>
+            {text}
+          </motion.span> */}
+          {text.split(' ').map((w, i) => (
+            <motion.span
+              key={i}
+              className='inline-block'
+              style={{
+                opacity: 0,
+                filter: 'blur(10px)',
+                y: 10
+              }}
+            >
+              {w} &nbsp;
+            </motion.span>
+          ))}
+        </div>
       </div>
     </>
   )
